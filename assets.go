@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"mime"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/google/uuid"
@@ -16,8 +19,28 @@ func (cfg apiConfig) ensureAssetsDir() error {
 	return nil
 }
 
-func getExtension(mimeType string) string {
-	return strings.Split(mimeType, "/")[1]
+func getExtension(mimeType string) (string, error) {
+	mediaType, _, err := mime.ParseMediaType(mimeType)
+
+	if err != nil {
+		return "", err
+	}
+
+	return mediaType, nil
+}
+
+func validateAndGetExtension(mimeType string, validExts []string) (string, error) {
+	mediaType, err := getExtension(mimeType)
+	if err != nil {
+		return "", nil
+	}
+
+	if !slices.Contains(validExts, mediaType) {
+		return "", errors.New("invalid media type")
+	}
+
+	ext := strings.Split(mediaType, "/")[1]
+	return ext, nil
 }
 
 func (cfg apiConfig) getFilePath(id uuid.UUID, ext string) string {

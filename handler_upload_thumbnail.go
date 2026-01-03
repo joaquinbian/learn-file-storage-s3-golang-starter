@@ -67,7 +67,12 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	extension := getExtension(mediaType)
+	extension, err := validateAndGetExtension(mediaType, []string{"image/jpeg", "image/png"})
+
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
 
 	filePath := cfg.getFilePath(videoID, extension)
 
