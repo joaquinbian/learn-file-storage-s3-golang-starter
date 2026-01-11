@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -74,7 +76,18 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	filePath := cfg.getFilePath(videoID, extension)
+	randID := make([]byte, 32)
+
+	_, err = rand.Read(randID)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "something went wrong", err)
+		return
+	}
+
+	encoding := base64.RawStdEncoding.EncodeToString(randID)
+
+	filePath := cfg.getFilePath(encoding, extension)
 
 	f, err := os.Create(filePath)
 

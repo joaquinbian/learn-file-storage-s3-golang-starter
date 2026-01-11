@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 func (cfg apiConfig) ensureAssetsDir() error {
@@ -43,8 +41,8 @@ func validateAndGetExtension(mimeType string, validExts []string) (string, error
 	return ext, nil
 }
 
-func (cfg apiConfig) getFilePath(id uuid.UUID, ext string) string {
-	return filepath.Join(fmt.Sprintf("%v/%v.%v", cfg.assetsRoot, id.String(), ext))
+func (cfg apiConfig) getFilePath(path string, ext string) string {
+	return filepath.Join(fmt.Sprintf("%v/%v.%v", cfg.assetsRoot, path, ext))
 
 }
 
