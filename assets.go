@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"mime"
@@ -48,5 +50,24 @@ func (cfg apiConfig) getFilePath(path string, ext string) string {
 
 func (cfg apiConfig) getFileURL(filePath string) string {
 	return fmt.Sprintf("http://localhost:%v/%v", cfg.port, filePath)
+
+}
+
+func getS3AssetURL(bucket, region, key string) string {
+	return fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, region, key)
+}
+
+func generateRandID() (string, error) {
+	randID := make([]byte, 32)
+
+	_, err := rand.Read(randID)
+
+	if err != nil {
+		return "", errors.New("error reading random id")
+	}
+
+	encoding := base64.RawStdEncoding.EncodeToString(randID)
+
+	return encoding, nil
 
 }
