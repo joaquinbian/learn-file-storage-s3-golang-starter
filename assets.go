@@ -1,7 +1,15 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+	"mime"
 	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
+	"github.com/google/uuid"
 )
 
 func (cfg apiConfig) ensureAssetsDir() error {
@@ -9,4 +17,38 @@ func (cfg apiConfig) ensureAssetsDir() error {
 		return os.Mkdir(cfg.assetsRoot, 0755)
 	}
 	return nil
+}
+
+func validateImageMediaType(mimeType string) (string, error) {
+
+	VALID_MEDIA_TYPES := []string{"image/png", "image/jpeg"}
+	mediatype, _, err := mime.ParseMediaType(mimeType)
+	if err != nil {
+		return "", err
+	}
+
+	if !slices.Contains(VALID_MEDIA_TYPES, mediatype) {
+		return "", errors.New("file is not an image")
+	}
+
+	return mediatype, nil
+}
+func getAssetPath(assetID uuid.UUID, mediaType string) string {
+	ext := mediaTypeToExt(mediaType)
+
+	return fmt.Sprintf("%s%s", assetID.String(), ext)
+}
+func (cfg *apiConfig) getAssetFilepath(path string) string {
+	return filepath.Join(cfg.assetsRoot, path)
+}
+
+func (cfg *apiConfig) getAssetURL(path string) string {
+	return fmt.Sprintf("http://localhost:%s/assets/%s", cfg.port, path)
+}
+func mediaTypeToExt(mimeType string) string {
+	parts := strings.Split(mimeType, "/")
+	if len(parts) != 2 {
+		return ".bin"
+	}
+	return "." + parts[1]
 }
