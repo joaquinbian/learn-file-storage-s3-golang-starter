@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-
-	"github.com/google/uuid"
 )
 
 func (cfg apiConfig) ensureAssetsDir() error {
@@ -33,10 +31,10 @@ func validateImageMediaType(mimeType string) (string, error) {
 
 	return mediatype, nil
 }
-func getAssetPath(assetID uuid.UUID, mediaType string) string {
+func getAssetPath(assetID string, mediaType string) string {
 	ext := mediaTypeToExt(mediaType)
 
-	return fmt.Sprintf("%s%s", assetID.String(), ext)
+	return fmt.Sprintf("%s%s", assetID, ext)
 }
 func (cfg *apiConfig) getAssetFilepath(path string) string {
 	return filepath.Join(cfg.assetsRoot, path)
