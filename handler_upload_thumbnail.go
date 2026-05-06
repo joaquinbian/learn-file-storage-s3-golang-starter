@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -67,10 +65,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	imgRandURL := make([]byte, 32)
-	rand.Read(imgRandURL)
-
-	encoded := base64.RawURLEncoding.EncodeToString(imgRandURL)
+	encoded := getRandomPath()
 
 	imageFilePath := getAssetPath(encoded, mediaType)
 
