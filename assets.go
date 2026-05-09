@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"mime"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -74,4 +78,52 @@ func getRandomPath() string {
 
 	encodedURL := base64.RawURLEncoding.EncodeToString(url)
 	return encodedURL
+}
+
+func getVideoAspectRatio(filepath string) (string, error) {
+	var fileStream FileStream
+	cmd := exec.Command("ffprobe", "-v", "error", "-print_format", "json", "-show_streams", filepath)
+
+	var res = &bytes.Buffer{}
+	cmd.Stdout = res
+	err := cmd.Run()
+
+	if err != nil {
+		return "", errors.New("error executing command")
+	}
+
+	if err := json.Unmarshal(res.Bytes(), &fileStream); err != nil {
+		return "", errors.New("error unmarshalling file stream")
+	}
+
+	ratio := getAspectRatio(fileStream.Streams[0].Width, fileStream.Streams[0].Height)
+
+	return translateAspectRatio(ratio), nil
+}
+
+// AspectRatio calcula el aspect ratio (ancho/alto) de una imagen dados su width y height.
+// Devuelve 0 si height es 0 para evitar división por cero.
+func getAspectRatio(width, height int) string {
+	if height == 0 {
+		return "other"
+	}
+	ratio := float64(width / height)
+	const tolerance = 0.02
+	if math.Abs(ratio-(16/9)) < tolerance {
+		return "16:9"
+	} else if math.Abs(ratio-(9/16)) < tolerance {
+		return "9:16"
+	} else {
+		return "other"
+	}
+}
+
+func translateAspectRatio(ratio string) string {
+	if strings.Compare(ratio, "16:9") == 0 {
+		return "landscape"
+	} else if strings.Compare(ratio, "9:16") == 0 {
+		return "portrait"
+	} else {
+		return "other"
+	}
 }

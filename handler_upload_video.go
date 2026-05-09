@@ -82,13 +82,22 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		respondWithError(w, http.StatusInternalServerError, "error copying temp file", err)
 		return
 	}
+	aspectRatio, err := getVideoAspectRatio(tmpFile.Name())
+
+	fmt.Printf("aspectRatio: %s", aspectRatio)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "error getting video aspect ratio", err)
+		return
+	}
+
 	_, err = tmpFile.Seek(0, io.SeekStart)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "error seeking temp file", err)
 		return
 	}
-	key := getRandomPath() + ext
+	key := aspectRatio + "/" + getRandomPath() + ext
 
 	obj := s3.PutObjectInput{
 		Bucket:      &cfg.s3Bucket,
