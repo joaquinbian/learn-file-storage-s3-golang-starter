@@ -127,3 +127,19 @@ func translateAspectRatio(ratio string) string {
 		return "other"
 	}
 }
+
+func processVideoForFastStart(filepath string) (string, error) {
+
+	output := fmt.Sprintf("%s.%s", filepath, "processing")
+
+	cmd := exec.Command("ffmpeg", "-i", filepath, "-c", "copy", "-movflags", "faststart", "-f", "mp4", output)
+
+	err := cmd.Run()
+
+	if err != nil {
+		fmt.Print(err)
+		return "", err
+	}
+
+	return output, nil
+}

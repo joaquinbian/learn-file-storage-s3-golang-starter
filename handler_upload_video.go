@@ -97,12 +97,31 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		respondWithError(w, http.StatusInternalServerError, "error seeking temp file", err)
 		return
 	}
+
+	videoPreProcesedPath, err := processVideoForFastStart(tmpFile.Name())
+
+	defer os.Remove(videoPreProcesedPath)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "error pre-processing video temp file", err)
+		return
+	}
+
+	filePP, err := os.OpenFile(videoPreProcesedPath, os.O_RDONLY, os.ModeType)
+
+	defer filePP.Close()
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "error reading video pre processed file", err)
+		return
+	}
+
 	key := aspectRatio + "/" + getRandomPath() + ext
 
 	obj := s3.PutObjectInput{
 		Bucket:      &cfg.s3Bucket,
 		Key:         &key,
-		Body:        tmpFile,
+		Body:        filePP,
 		ContentType: &mimeType,
 	}
 
